@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Industrial Monitoring Web App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Custom animations */
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-slide-up {
+            animation: fadeInSlideUp 0.6s ease-out forwards;
+        }
+        
+        /* Hover effects for cards */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        
+        /* Dark theme styles - Full Dark Version */
+        .brand-dark {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(at 20% 80%, #0f172a 0px, transparent 50%),
+                radial-gradient(at 80% 20%, #0f172a 0px, transparent 50%),
+                radial-gradient(at 40% 40%, #1e3a8a 0px, transparent 50%);
+        }
+        
+        .text-on-dark {
+            color: #f1f5f9;
+        }
+        
+        .text-secondary-on-dark {
+            color: #cbd5e1;
+        }
+        
+        .card-on-dark {
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-link-dark {
+            color: #cbd5e1;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link-dark:hover {
+            color: #f1f5f9;
+        }
+        
+        .nav-link-dark.active {
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="brand-dark min-h-screen">
+    <div id="root"></div>
+    <script type="text/javascript">
+        // Mock Data
+        const mockMachines = [
+            { 
+                id: 1, 
+                name: "Induction Motor", 
+                status: "warning", 
+                location: "Factory Floor 1", 
+                lastMaintenance: "2023-05-15", 
+                type: "motor",
+                image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+            },
+            { 
+                id: 2, 
+                name: "Gear Hobbing Machine", 
+                status: "normal", 
+                location: "Factory Floor 1", 
+                lastMaintenance: "2023-06-20", 
+                type: "gear",
+                image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+            },
+            { 
+                id: 3, 
+                name: "CNC Milling Machine", 
+                status: "critical", 
+                location: "Factory Floor 2", 
+                lastMaintenance: "2023-04-10", 
+                type: "cnc",
+                image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+            },
+            { 
+                id: 4, 
+                name: "Hydraulic Press", 
+                status: "normal", 
+                location: "Factory Floor 2", 
+                lastMaintenance: "2023-06-18", 
+                type: "press",
+                image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+            },
+            { 
+                id: 5, 
+                name: "Assembly Line Robot", 
+                status: "warning", 
+                location: "Factory Floor 3", 
+                lastMaintenance: "2023-05-28", 
+                type: "robot",
+                image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+            },
+            { 
+                id: 6, 
+                name: "Conveyor Belt System", 
+                status: "normal", 
+                location: "Factory Floor 3", 
+                lastMaintenance: "2023-06-22", 
+                type: "conveyor",
+                image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+            }
+        ];
+    </script>
+    <script type="text/babel">
+        // Navigation Bar Component
+        const NavBar = () => {
+            const navLinks = [
+                { name: "Home", path: "index.html" },
+                { name: "Dashboard", path: "dashboard.html" },
+                { name: "Analytics", path: "Analytics.html" },
+                { name: "Alerts", path: "Alerts.html" },
+                { name: "AI Chat", path: "AI Chat.html" },
+                { name: "Settings", path: "Settings.html" }
+            ];
+            
+            // Get current page to highlight active link
+            const getCurrentPage = () => {
+                const path = window.location.pathname;
+                const filename = path.substring(path.lastIndexOf('/') + 1);
+                return filename === '' ? 'index.html' : filename;
+            };
+            
+            const currentPage = getCurrentPage();
+            
+            return (
+                <nav className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md shadow-lg">
+                    <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+                        <div className="flex items-center space-x-10">
+                            <div className="flex items-center">
+                                <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
+                                <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
+                            </div>
+                            
+                            <div className="hidden md:flex space-x-8 relative">
+                                {navLinks.map((link) => (
+                                    <a 
+                                        key={link.name}
+                                        href={link.path}
+                                        className={`nav-link nav-link-dark px-1 py-2 ${currentPage === link.path ? 'active' : ''}`}
+                                    >
+                                        {link.name}
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-4">
+                            <a 
+                                href="login.html"
+                                className="text-secondary-on-dark hover:text-on-dark transition-colors"
+                            >
+                                Sign In
+                            </a>
+                            <a 
+                                href="signup.html"
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                                Sign Up
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            );
+        };
+
+        // Dashboard Component
+        const Dashboard = () => {
+            const needsAttention = mockMachines.filter(machine => machine.status !== 'normal');
+            const otherMachines = mockMachines.filter(machine => machine.status === 'normal');
+            
+            React.useEffect(() => {
+                // Initialize Lucide icons
+                lucide.createIcons();
+            }, []);
+            
+            const getStatusColor = (status) => {
+                switch (status) {
+                    case 'critical': return 'bg-red-500';
+                    case 'warning': return 'bg-yellow-500';
+                    default: return 'bg-green-500';
+                }
+            };
+            
+            const getStatusText = (status) => {
+                switch (status) {
+                    case 'critical': return 'Critical';
+                    case 'warning': return 'Warning';
+                    default: return 'Normal';
+                }
+            };
+            
+            return (
+                <div>
+                    <NavBar />
+                    <div className="p-8">
+                        <div className="flex justify-between items-center mb-8">
+                            <h1 className="text-2xl font-bold text-on-dark">Machine Status</h1>
+                            <button 
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
+                                onClick={() => window.location.href = "maintenance.html"}
+                            >
+                                <i data-lucide="calendar" className="w-5 h-5 mr-2"></i>
+                                Maintenance Schedules
+                            </button>
+                        </div>
+                        
+                        {/* Needs Attention Section */}
+                        {needsAttention.length > 0 && (
+                            <div className="mb-10">
+                                <h2 className="text-xl font-semibold text-secondary-on-dark mb-4 flex items-center">
+                                    <i data-lucide="alert-triangle" className="w-5 h-5 mr-2 text-yellow-500"></i>
+                                    Needs Attention
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {needsAttention.map(machine => (
+                                        <div 
+                                            key={machine.id} 
+                                            className="card-on-dark rounded-xl shadow-md overflow-hidden card-hover cursor-pointer"
+                                            onClick={() => window.location.href = `machine-detail.html?id=${machine.id}`}
+                                        >
+                                            <div className="h-40 overflow-hidden">
+                                                <img 
+                                                    src={machine.image} 
+                                                    alt={machine.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="p-4">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h3 className="text-lg font-semibold text-on-dark">{machine.name}</h3>
+                                                    <span className={`inline-block w-3 h-3 rounded-full ${getStatusColor(machine.status)}`}></span>
+                                                </div>
+                                                <p className="text-secondary-on-dark text-sm mb-2">{machine.location}</p>
+                                                <div className="flex justify-between text-xs text-slate-400">
+                                                    <span>Last Maintenance: {machine.lastMaintenance}</span>
+                                                    <span className="font-medium text-yellow-600">{getStatusText(machine.status)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Other Machines Section */}
+                        <div>
+                            <h2 className="text-xl font-semibold text-secondary-on-dark mb-4 flex items-center">
+                                <i data-lucide="check-circle" className="w-5 h-5 mr-2 text-green-500"></i>
+                                Other Machines
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {otherMachines.map(machine => (
+                                    <div 
+                                        key={machine.id} 
+                                        className="card-on-dark rounded-xl shadow-md overflow-hidden card-hover cursor-pointer"
+                                        onClick={() => window.location.href = `machine-detail.html?id=${machine.id}`}
+                                    >
+                                        <div className="h-40 overflow-hidden">
+                                            <img 
+                                                src={machine.image} 
+                                                alt={machine.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h3 className="text-lg font-semibold text-on-dark">{machine.name}</h3>
+                                                <span className={`inline-block w-3 h-3 rounded-full ${getStatusColor(machine.status)}`}></span>
+                                            </div>
+                                            <p className="text-secondary-on-dark text-sm mb-2">{machine.location}</p>
+                                            <div className="flex justify-between text-xs text-slate-400">
+                                                <span>Last Maintenance: {machine.lastMaintenance}</span>
+                                                <span className="font-medium text-green-600">{getStatusText(machine.status)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            return <Dashboard />;
+        };
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

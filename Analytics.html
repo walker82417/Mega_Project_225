@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Industrial Monitoring Web App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Sidebar active item */
+        .sidebar-item.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        /* Dark theme styles - Full Dark Version */
+        .brand-dark {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(at 20% 80%, #0f172a 0px, transparent 50%),
+                radial-gradient(at 80% 20%, #0f172a 0px, transparent 50%),
+                radial-gradient(at 40% 40%, #1e3a8a 0px, transparent 50%);
+        }
+        
+        .text-on-dark {
+            color: #f1f5f9;
+        }
+        
+        .text-secondary-on-dark {
+            color: #cbd5e1;
+        }
+        
+        .card-on-dark {
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-link-dark {
+            color: #cbd5e1;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link-dark:hover {
+            color: #f1f5f9;
+        }
+        
+        .nav-link-dark.active {
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="brand-dark min-h-screen">
+    <div id="root"></div>
+    <script type="text/babel">
+        // Sidebar Component
+        const Sidebar = () => {
+            const menuItems = [
+                { name: "Dashboard", path: "dashboard.html", icon: "layout-dashboard" },
+                { name: "Analytics", path: "Analytics.html", icon: "bar-chart-3" },
+                { name: "Alerts", path: "Alerts.html", icon: "alert-triangle" },
+                { name: "AI Chat", path: "AI Chat.html", icon: "message-square" },
+                { name: "Settings", path: "Settings.html", icon: "settings" }
+            ];
+            
+            React.useEffect(() => {
+                // Initialize Lucide icons
+                lucide.createIcons();
+            }, []);
+            
+            return (
+                <div className="w-64 bg-slate-950 shadow-md h-screen fixed left-0 top-0 pt-16">
+                    <div className="p-4">
+                        <div className="flex items-center mb-8">
+                            <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
+                            <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
+                        </div>
+                        
+                        <nav>
+                            <ul>
+                                {menuItems.map((item) => (
+                                    <li key={item.name} className="mb-2">
+                                        <a
+                                            href={item.path}
+                                            className={`flex items-center px-4 py-3 rounded-lg transition-colors sidebar-item ${item.name === "Analytics" ? 'active' : 'hover:bg-slate-900'}`}
+                                        >
+                                            <i data-lucide={item.icon} className="w-5 h-5 mr-3 text-slate-400"></i>
+                                            <span className="text-secondary-on-dark">{item.name}</span>
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            );
+        };
+
+        // Analytics Data Component
+        const AnalyticsData = () => {
+            React.useEffect(() => {
+                // Initialize Lucide icons
+                lucide.createIcons();
+            }, []);
+            
+            return (
+                <div className="ml-64 p-8">
+                    <h1 className="text-2xl font-bold text-on-dark mb-8">Analytics</h1>
+                    <div className="card-on-dark rounded-xl shadow-md p-12 text-center">
+                        <div className="w-16 h-16 bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="bar-chart-3" className="w-8 h-8 text-blue-400"></i>
+                        </div>
+                        <h2 className="text-xl font-semibold text-on-dark mb-2">Coming Soon</h2>
+                        <p className="text-secondary-on-dark max-w-md mx-auto">
+                            Historical trends and analytics will be available here. You'll be able to view machine performance over time and identify patterns.
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            return (
+                <div>
+                    <Sidebar />
+                    <AnalyticsData />
+                </div>
+            );
+        };
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

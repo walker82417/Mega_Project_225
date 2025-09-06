@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Detail - Industrial Monitoring Web App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        .brand-dark { background-color: #020617; background-image: radial-gradient(at 20% 80%, #0f172a 0px, transparent 50%), radial-gradient(at 80% 20%, #0f172a 0px, transparent 50%), radial-gradient(at 40% 40%, #1e3a8a 0px, transparent 50%); }
+        .text-on-dark { color: #f1f5f9; }
+        .text-secondary-on-dark { color: #cbd5e1; }
+        .card-on-dark { background-color: rgba(15, 23, 42, 0.8); border: 1px solid #1e293b; backdrop-filter: blur(10px); }
+        .nav-link-dark { color: #cbd5e1; transition: color 0.3s ease; }
+        .nav-link-dark:hover { color: #f1f5f9; }
+        .nav-link-dark.active { color: #3b82f6; }
+        .chart-container { position: relative; height: 200px; width: 100%; }
+    </style>
+</head>
+<body class="brand-dark min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/javascript">
+        // Mock Data
+        const mockMachines = [
+            { id: 1, name: "CNC Machine A", status: "warning", location: "Factory Floor 1", lastMaintenance: "2023-05-15", type: "cnc" },
+            { id: 2, name: "Hydraulic Press B", status: "normal", location: "Factory Floor 1", lastMaintenance: "2023-06-20", type: "press" },
+            { id: 3, name: "Assembly Line C", status: "critical", location: "Factory Floor 2", lastMaintenance: "2023-04-10", type: "assembly" },
+            { id: 4, name: "Packaging Machine D", status: "normal", location: "Factory Floor 2", lastMaintenance: "2023-06-18", type: "packaging" },
+            { id: 5, name: "Welding Robot E", status: "warning", location: "Factory Floor 3", lastMaintenance: "2023-05-28", type: "robot" },
+            { id: 6, name: "Conveyor Belt F", status: "normal", location: "Factory Floor 3", lastMaintenance: "2023-06-22", type: "conveyor" }
+        ];
+        
+        // Get machine ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const machineId = urlParams.get('id');
+        
+        // Utility function to get machine by ID
+        const getMachineById = (id) => {
+            return mockMachines.find(machine => machine.id === parseInt(id));
+        };
+    </script>
+
+    <script type="text/babel">
+        // Navigation Bar Component
+        const NavBar = () => {
+            const navLinks = [ { name: "Home", path: "index.html" }, { name: "Dashboard", path: "dashboard.html" }, { name: "Analytics", path: "Analytics.html" }, { name: "Alerts", path: "Alerts.html" }, { name: "AI Chat", path: "AI Chat.html" }, { name: "Settings", path: "Settings.html" } ];
+            
+            const getCurrentPage = () => {
+                const path = window.location.pathname;
+                const filename = path.substring(path.lastIndexOf('/') + 1);
+                if (filename === 'mainteance-machine.html') return 'dashboard.html';
+                return filename === '' ? 'index.html' : filename;
+            };
+            
+            const currentPage = getCurrentPage();
+            
+            return (
+                <nav className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md shadow-lg">
+                    <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+                        <div className="flex items-center space-x-10">
+                            <div className="flex items-center">
+                                <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
+                                <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
+                            </div>
+                            <div className="hidden md:flex space-x-8 relative">
+                                {navLinks.map((link) => (
+                                    <a key={link.name} href={link.path} className={`nav-link nav-link-dark px-1 py-2 ${currentPage === link.path ? 'active' : ''}`}>
+                                        {link.name}
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <a href="login.html" className="text-secondary-on-dark hover:text-on-dark transition-colors">Sign In</a>
+                            <a href="signup.html" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">Sign Up</a>
+                        </div>
+                    </div>
+                </nav>
+            );
+        };
+
+        // Machine Detail Component
+        const MachineDetail = () => {
+            const machine = getMachineById(machineId);
+            const [chartData, setChartData] = React.useState({ labels: [], temp: [], vib: [], current: [], voltage: [] });
+            const lastValues = React.useRef(null);
+            
+            // Function to get machine-specific simulation parameters
+            const getMachineConfig = (machineType) => {
+                let base = { temp: { base: 65, drift: 0.1, volatility: 0.5 }, vib: { base: 2.5, volatility: 1.5 }, current: { base: 15, volatility: 2, spikeChance: 0.05 }, voltage: { base: 425, volatility: 0.5 } };
+                switch(machineType) {
+                    case 'cnc': base = { temp: { base: 70, drift: 0.1, volatility: 0.8 }, vib: { base: 3.5, volatility: 2.5 }, current: { base: 18, volatility: 3, spikeChance: 0.1 }, voltage: { base: 425, volatility: 0.3 } }; break;
+                    case 'press': base = { temp: { base: 65, drift: 0.05, volatility: 0.4 }, vib: { base: 2.8, volatility: 1.8 }, current: { base: 25, volatility: 5, spikeChance: 0.2 }, voltage: { base: 425, volatility: 0.8 } }; break;
+                    case 'assembly': base = { temp: { base: 75, drift: 0.08, volatility: 1.2 }, vib: { base: 4.2, volatility: 3.0 }, current: { base: 15, volatility: 1.5, spikeChance: 0.03 }, voltage: { base: 425, volatility: 0.4 } }; break;
+                }
+                return base;
+            };
+            
+            React.useEffect(() => {
+                lucide.createIcons();
+                if (!machine) return;
+
+                const config = getMachineConfig(machine.type);
+
+                // Initialize refs for smooth data
+                lastValues.current = {
+                    temp: config.temp.base
+                };
+
+                const createChartConfig = (labels, dataset) => ({
+                    type: 'line', data: { labels, datasets: [dataset] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        animation: { duration: 400, easing: 'linear' },
+                        plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                        scales: { x: { ticks: { color: '#94a3b8', maxRotation: 0, autoSkip: true, maxTicksLimit: 7 }, grid: { color: 'rgba(148, 163, 184, 0.1)' } }, y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.1)' } } }
+                    }
+                });
+
+                // Initial data generation
+                const initial = { labels: [], temp: [], vib: [], current: [], voltage: [] };
+                const now = new Date();
+                for (let i = 59; i >= 0; i--) {
+                    initial.labels.push(new Date(now - i * 1000).toLocaleTimeString());
+                    const tempChange = (Math.random() - 0.5) * config.temp.volatility;
+                    lastValues.current.temp += tempChange + (config.temp.base - lastValues.current.temp) * config.temp.drift;
+                    initial.temp.push(lastValues.current.temp);
+                    initial.vib.push(config.vib.base + (Math.random() - 0.5) * config.vib.volatility);
+                    initial.current.push(config.current.base + (Math.random() - 0.5) * config.current.volatility);
+                    initial.voltage.push(config.voltage.base + (Math.random() - 0.5) * config.voltage.volatility);
+                }
+                setChartData(initial);
+
+                const charts = {
+                    vib: new Chart(document.getElementById('vibChart'), createChartConfig(initial.labels, { label: 'Vibration (mm/s)', data: initial.vib, borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.1)', borderWidth: 2, tension: 0.4, fill: true, pointRadius: 0 })),
+                    temp: new Chart(document.getElementById('tempChart'), createChartConfig(initial.labels, { label: 'Temperature (°F)', data: initial.temp, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, tension: 0.4, fill: true, pointRadius: 0 })),
+                    current: new Chart(document.getElementById('currentChart'), createChartConfig(initial.labels, { label: 'Motor Current (A)', data: initial.current, borderColor: '#eab308', backgroundColor: 'rgba(234, 179, 8, 0.1)', borderWidth: 2, tension: 0.4, fill: true, pointRadius: 0 })),
+                    voltage: new Chart(document.getElementById('voltageChart'), createChartConfig(initial.labels, { label: 'Voltage (V)', data: initial.voltage, borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.1)', borderWidth: 2, tension: 0.4, fill: true, pointRadius: 0 }))
+                };
+
+                const interval = setInterval(() => {
+                    const newTime = new Date().toLocaleTimeString();
+                    
+                    // Generate new data points based on video behavior
+                    const tempChange = (Math.random() - 0.5) * config.temp.volatility;
+                    lastValues.current.temp += tempChange + (config.temp.base - lastValues.current.temp) * config.temp.drift;
+                    const newTemp = lastValues.current.temp;
+                    
+                    const newVib = config.vib.base + (Math.random() - 0.5) * config.vib.volatility;
+                    
+                    let newCurrent = config.current.base + (Math.random() - 0.5) * config.current.volatility;
+                    if (Math.random() < config.current.spikeChance) { newCurrent += (Math.random() * config.current.volatility * 3); }
+
+                    const newVoltage = config.voltage.base + (Math.random() - 0.5) * config.voltage.volatility;
+
+                    setChartData(prev => {
+                        const updatedData = {
+                            labels: [...prev.labels.slice(1), newTime],
+                            temp: [...prev.temp.slice(1), newTemp],
+                            vib: [...prev.vib.slice(1), newVib],
+                            current: [...prev.current.slice(1), newCurrent],
+                            voltage: [...prev.voltage.slice(1), newVoltage]
+                        };
+
+                        charts.temp.data.labels = updatedData.labels;
+                        charts.temp.data.datasets[0].data = updatedData.temp;
+                        charts.temp.update();
+                        
+                        charts.vib.data.labels = updatedData.labels;
+                        charts.vib.data.datasets[0].data = updatedData.vib;
+                        charts.vib.update();
+
+                        charts.current.data.labels = updatedData.labels;
+                        charts.current.data.datasets[0].data = updatedData.current;
+                        charts.current.update();
+
+                        charts.voltage.data.labels = updatedData.labels;
+                        charts.voltage.data.datasets[0].data = updatedData.voltage;
+                        charts.voltage.update();
+
+                        return updatedData;
+                    });
+                }, 1000);
+
+                return () => { clearInterval(interval); Object.values(charts).forEach(c => c.destroy()); };
+            }, [machineId]);
+            
+            const handleDownload = () => {
+                const { labels, temp, vib, current, voltage } = chartData;
+                let csv = "Timestamp,Temperature (F),Vibration (mm/s),Motor Current (A),Voltage (V)\n";
+                labels.forEach((l, i) => { csv += `${l},${temp[i].toFixed(2)},${vib[i].toFixed(2)},${current[i].toFixed(2)},${voltage[i].toFixed(2)}\n`; });
+                const link = document.createElement("a");
+                link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
+                link.setAttribute("download", `${machine.name}_sensor_data.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            if (!machine) { /* Error handling for missing machine */ }
+            
+            const getStatusColor = (s) => ({ 'critical': 'text-red-400 bg-red-900/50', 'warning': 'text-yellow-400 bg-yellow-900/50', 'normal': 'text-green-400 bg-green-900/50' }[s]);
+            const getStatusText = (s) => ({ 'critical': 'Critical', 'warning': 'Warning', 'normal': 'Normal' }[s]);
+
+            return (
+                <div>
+                    <NavBar />
+                    <div className="container mx-auto p-8">
+                        <div className="mb-8">
+                            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                                <div>
+                                    <button className="flex items-center text-blue-400 hover:text-blue-300 mb-4" onClick={() => window.location.href = "dashboard.html"}>
+                                        <i data-lucide="arrow-left" className="w-4 h-4 mr-1"></i> Back to Dashboard
+                                    </button>
+                                    <h1 className="text-3xl font-bold text-on-dark mb-2">{machine.name}</h1>
+                                    <p className="text-secondary-on-dark">{machine.location}</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                     <button onClick={handleDownload} className="flex items-center bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <i data-lucide="download" className="w-4 h-4 mr-2"></i> Export Data
+                                    </button>
+                                    <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(machine.status)}`}>{getStatusText(machine.status)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                             <div className="card-on-dark rounded-xl shadow-lg p-6"> <h3 className="text-lg font-semibold text-on-dark mb-4">Vibration (mm/s)</h3> <div className="chart-container"><canvas id="vibChart"></canvas></div> <div className="mt-4 text-center"><span className="text-2xl font-bold text-on-dark">{chartData.vib.length > 0 ? chartData.vib[chartData.vib.length - 1].toFixed(1) : '...'}</span></div> </div>
+                             <div className="card-on-dark rounded-xl shadow-lg p-6"> <h3 className="text-lg font-semibold text-on-dark mb-4">Temperature (°F)</h3> <div className="chart-container"><canvas id="tempChart"></canvas></div> <div className="mt-4 text-center"><span className="text-2xl font-bold text-on-dark">{chartData.temp.length > 0 ? chartData.temp[chartData.temp.length - 1].toFixed(1) : '...'}</span></div> </div>
+                             <div className="card-on-dark rounded-xl shadow-lg p-6"> <h3 className="text-lg font-semibold text-on-dark mb-4">Motor Current (A)</h3> <div className="chart-container"><canvas id="currentChart"></canvas></div> <div className="mt-4 text-center"><span className="text-2xl font-bold text-on-dark">{chartData.current.length > 0 ? chartData.current[chartData.current.length - 1].toFixed(1) : '...'}</span></div> </div>
+                             <div className="card-on-dark rounded-xl shadow-lg p-6"> <h3 className="text-lg font-semibold text-on-dark mb-4">Voltage (V)</h3> <div className="chart-container"><canvas id="voltageChart"></canvas></div> <div className="mt-4 text-center"><span className="text-2xl font-bold text-on-dark">{chartData.voltage.length > 0 ? chartData.voltage[chartData.voltage.length - 1].toFixed(1) : '...'}</span></div> </div>
+                        </div>
+                        
+                        <div className="card-on-dark rounded-xl shadow-lg p-6">
+                            <h3 className="text-lg font-semibold text-on-dark mb-4">Maintenance Information</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div><p className="text-secondary-on-dark">Last Maintenance</p><p className="font-medium text-on-dark">{machine.lastMaintenance}</p></div>
+                                <div><p className="text-secondary-on-dark">Next Scheduled</p><p className="font-medium text-on-dark">2023-07-15</p></div>
+                                <div><p className="text-secondary-on-dark">Operating Hours</p><p className="font-medium text-on-dark">4,285 hours</p></div>
+                                <div><p className="text-secondary-on-dark">Efficiency</p><p className="font-medium text-on-dark">92%</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<MachineDetail />, document.getElementById('root'));
+    </script>
+</body>
+</html>

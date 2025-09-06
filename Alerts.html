@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts - Industrial Monitoring Web App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Sidebar active item */
+        .sidebar-item.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        /* Dark theme styles - Full Dark Version */
+        .brand-dark {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(at 20% 80%, #0f172a 0px, transparent 50%),
+                radial-gradient(at 80% 20%, #0f172a 0px, transparent 50%),
+                radial-gradient(at 40% 40%, #1e3a8a 0px, transparent 50%);
+        }
+        
+        .text-on-dark {
+            color: #f1f5f9;
+        }
+        
+        .text-secondary-on-dark {
+            color: #cbd5e1;
+        }
+        
+        .card-on-dark {
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-link-dark {
+            color: #cbd5e1;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link-dark:hover {
+            color: #f1f5f9;
+        }
+        
+        .nav-link-dark.active {
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="brand-dark min-h-screen">
+    <div id="root"></div>
+    <script type="text/javascript">
+        // Mock Data
+        const mockAlerts = [
+            { id: 1, machineId: 3, machineName: "Assembly Line C", type: "critical", message: "Bearing Wear Detected", timestamp: "2023-06-25 08:45", resolved: false },
+            { id: 2, machineId: 1, machineName: "CNC Machine A", type: "warning", message: "Temperature Above Threshold", timestamp: "2023-06-25 09:30", resolved: false },
+            { id: 3, machineId: 5, machineName: "Welding Robot E", type: "warning", message: "Vibration Levels Increasing", timestamp: "2023-06-24 14:20", resolved: false },
+            { id: 4, machineId: 2, machineName: "Hydraulic Press B", type: "info", message: "Scheduled Maintenance Due", timestamp: "2023-06-23 11:15", resolved: true },
+            { id: 5, machineId: 4, machineName: "Packaging Machine D", type: "info", message: "Performance Optimization Available", timestamp: "2023-06-22 16:40", resolved: true }
+        ];
+    </script>
+    <script type="text/babel">
+        // Sidebar Component
+        const Sidebar = () => {
+            const menuItems = [
+                { name: "Dashboard", path: "dashboard.html", icon: "layout-dashboard" },
+                { name: "Analytics", path: "Analytics.html", icon: "bar-chart-3" },
+                { name: "Alerts", path: "Alerts.html", icon: "alert-triangle" },
+                { name: "AI Chat", path: "AI Chat.html", icon: "message-square" },
+                { name: "Settings", path: "Settings.html", icon: "settings" }
+            ];
+            
+            React.useEffect(() => {
+                // Initialize Lucide icons
+                lucide.createIcons();
+            }, []);
+            
+            return (
+                <div className="w-64 bg-slate-950 shadow-md h-screen fixed left-0 top-0 pt-16">
+                    <div className="p-4">
+                        <div className="flex items-center mb-8">
+                            <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
+                            <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
+                        </div>
+                        
+                        <nav>
+                            <ul>
+                                {menuItems.map((item) => (
+                                    <li key={item.name} className="mb-2">
+                                        <a
+                                            href={item.path}
+                                            className={`flex items-center px-4 py-3 rounded-lg transition-colors sidebar-item ${item.name === "Alerts" ? 'active' : 'hover:bg-slate-900'}`}
+                                        >
+                                            <i data-lucide={item.icon} className="w-5 h-5 mr-3 text-slate-400"></i>
+                                            <span className="text-secondary-on-dark">{item.name}</span>
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            );
+        };
+
+        // Alerts Component
+        const Alerts = () => {
+            const criticalAlerts = mockAlerts.filter(alert => alert.type === 'critical' && !alert.resolved);
+            const warningAlerts = mockAlerts.filter(alert => alert.type === 'warning' && !alert.resolved);
+            const infoAlerts = mockAlerts.filter(alert => alert.type === 'info' && !alert.resolved);
+            const resolvedAlerts = mockAlerts.filter(alert => alert.resolved);
+            
+            React.useEffect(() => {
+                // Initialize Lucide icons
+                lucide.createIcons();
+            }, []);
+            
+            const getAlertBorderClass = (type) => {
+                switch (type) {
+                    case 'critical': return 'border-red-500';
+                    case 'warning': return 'border-yellow-500';
+                    case 'info': return 'border-blue-500';
+                    default: return 'border-slate-600';
+                }
+            };
+            
+            const getAlertIcon = (type) => {
+                switch (type) {
+                    case 'critical': return 'alert-circle';
+                    case 'warning': return 'alert-triangle';
+                    case 'info': return 'info';
+                    default: return 'bell';
+                }
+            };
+            
+            const getAlertIconColor = (type) => {
+                switch (type) {
+                    case 'critical': return 'text-red-500';
+                    case 'warning': return 'text-yellow-500';
+                    case 'info': return 'text-blue-500';
+                    default: return 'text-slate-500';
+                }
+            };
+            
+            return (
+                <div className="ml-64 p-8">
+                    <h1 className="text-2xl font-bold text-on-dark mb-8">Alert Management</h1>
+                    
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div className="card-on-dark rounded-xl shadow-md p-6">
+                            <div className="flex items-center">
+                                <div className="w-12 h-12 bg-blue-900 rounded-lg flex items-center justify-center mr-4">
+                                    <i data-lucide="bell" className="w-6 h-6 text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <p className="text-secondary-on-dark">Total Alerts</p>
+                                    <p className="text-2xl font-bold text-on-dark">{mockAlerts.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="card-on-dark rounded-xl shadow-md p-6">
+                            <div className="flex items-center">
+                                <div className="w-12 h-12 bg-red-900 rounded-lg flex items-center justify-center mr-4">
+                                    <i data-lucide="alert-circle" className="w-6 h-6 text-red-400"></i>
+                                </div>
+                                <div>
+                                    <p className="text-secondary-on-dark">Critical</p>
+                                    <p className="text-2xl font-bold text-on-dark">{criticalAlerts.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="card-on-dark rounded-xl shadow-md p-6">
+                            <div className="flex items-center">
+                                <div className="w-12 h-12 bg-yellow-900 rounded-lg flex items-center justify-center mr-4">
+                                    <i data-lucide="alert-triangle" className="w-6 h-6 text-yellow-400"></i>
+                                </div>
+                                <div>
+                                    <p className="text-secondary-on-dark">Warning</p>
+                                    <p className="text-2xl font-bold text-on-dark">{warningAlerts.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="card-on-dark rounded-xl shadow-md p-6">
+                            <div className="flex items-center">
+                                <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center mr-4">
+                                    <i data-lucide="check-circle" className="w-6 h-6 text-slate-400"></i>
+                                </div>
+                                <div>
+                                    <p className="text-secondary-on-dark">Unresolved</p>
+                                    <p className="text-2xl font-bold text-on-dark">{mockAlerts.filter(a => !a.resolved).length}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Active Alerts */}
+                    <div className="mb-8">
+                        <h2 className="text-xl font-semibold text-secondary-on-dark mb-4">Active Alerts</h2>
+                        <div className="card-on-dark rounded-xl shadow-md overflow-hidden">
+                            {[...criticalAlerts, ...warningAlerts, ...infoAlerts].map(alert => (
+                                <div key={alert.id} className={`border-l-4 ${getAlertBorderClass(alert.type)} p-4 ${alert.id !== [...criticalAlerts, ...warningAlerts, ...infoAlerts][[...criticalAlerts, ...warningAlerts, ...infoAlerts].length - 1].id ? 'border-b border-slate-800' : ''}`}>
+                                    <div className="flex justify-between">
+                                        <div className="flex items-start">
+                                            <i data-lucide={getAlertIcon(alert.type)} className={`w-5 h-5 mr-3 mt-0.5 ${getAlertIconColor(alert.type)}`}></i>
+                                            <div>
+                                                <h3 className="font-medium text-on-dark">{alert.machineName}</h3>
+                                                <p className="text-secondary-on-dark">{alert.message}</p>
+                                                <p className="text-sm text-slate-400 mt-1">{alert.timestamp}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            <button className="text-blue-400 hover:text-blue-300">
+                                                <i data-lucide="external-link" className="w-5 h-5"></i>
+                                            </button>
+                                            <button className="text-slate-400 hover:text-slate-300">
+                                                <i data-lucide="check" className="w-5 h-5"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            
+                            {[...criticalAlerts, ...warningAlerts, ...infoAlerts].length === 0 && (
+                                <div className="p-8 text-center text-slate-400">
+                                    <i data-lucide="check-circle" className="w-12 h-12 mx-auto mb-3 text-green-500"></i>
+                                    <p>No active alerts</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {/* Resolved Alerts */}
+                    <div>
+                        <h2 className="text-xl font-semibold text-secondary-on-dark mb-4">Resolved Alerts</h2>
+                        <div className="card-on-dark rounded-xl shadow-md overflow-hidden">
+                            {resolvedAlerts.map(alert => (
+                                <div key={alert.id} className={`border-l-4 ${getAlertBorderClass(alert.type)} p-4 ${alert.id !== resolvedAlerts[resolvedAlerts.length - 1].id ? 'border-b border-slate-800' : ''} opacity-70`}>
+                                    <div className="flex justify-between">
+                                        <div className="flex items-start">
+                                            <i data-lucide={getAlertIcon(alert.type)} className={`w-5 h-5 mr-3 mt-0.5 ${getAlertIconColor(alert.type)}`}></i>
+                                            <div>
+                                                <h3 className="font-medium text-on-dark">{alert.machineName}</h3>
+                                                <p className="text-secondary-on-dark">{alert.message}</p>
+                                                <p className="text-sm text-slate-400 mt-1">{alert.timestamp}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center text-green-500">
+                                            <i data-lucide="check-circle" className="w-5 h-5 mr-1"></i>
+                                            <span className="text-sm">Resolved</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            
+                            {resolvedAlerts.length === 0 && (
+                                <div className="p-8 text-center text-slate-400">
+                                    <p>No resolved alerts</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            return (
+                <div>
+                    <Sidebar />
+                    <Alerts />
+                </div>
+            );
+        };
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

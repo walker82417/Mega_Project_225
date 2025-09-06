@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription - Industrial Monitoring Web App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Dark theme styles - Full Dark Version */
+        .brand-dark {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(at 20% 80%, #0f172a 0px, transparent 50%),
+                radial-gradient(at 80% 20%, #0f172a 0px, transparent 50%),
+                radial-gradient(at 40% 40%, #1e3a8a 0px, transparent 50%);
+        }
+        
+        .text-on-dark {
+            color: #f1f5f9;
+        }
+        
+        .text-secondary-on-dark {
+            color: #cbd5e1;
+        }
+        
+        .card-on-dark {
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-link-dark {
+            color: #cbd5e1;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link-dark:hover {
+            color: #f1f5f9;
+        }
+        
+        .nav-link-dark.active {
+            color: #3b82f6;
+        }
+        
+        /* Pricing card styles */
+        .pricing-card {
+            transition: all 0.3s ease;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.5);
+        }
+        
+        .pricing-card.featured {
+            border: 2px solid #3b82f6;
+            transform: scale(1.05);
+        }
+        
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-10px);
+        }
+    </style>
+</head>
+<body class="brand-dark min-h-screen">
+    <div id="root"></div>
+    <script type="text/babel">
+        // Navigation Bar Component
+        const NavBar = () => {
+            const navLinks = [
+                { name: "Home", path: "index.html" },
+                { name: "Dashboard", path: "dashboard.html" },
+                { name: "Analytics", path: "Analytics.html" },
+                { name: "Alerts", path: "Alerts.html" },
+                { name: "AI Chat", path: "AI Chat.html" },
+                { name: "Settings", path: "Settings.html" }
+            ];
+            
+            // Get current page to highlight active link
+            const getCurrentPage = () => {
+                const path = window.location.pathname;
+                const filename = path.substring(path.lastIndexOf('/') + 1);
+                return filename === '' ? 'index.html' : filename;
+            };
+            
+            const currentPage = getCurrentPage();
+            
+            return (
+                <nav className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md shadow-lg">
+                    <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+                        <div className="flex items-center space-x-10">
+                            <div className="flex items-center">
+                                <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
+                                <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
+                            </div>
+                            
+                            <div className="hidden md:flex space-x-8 relative">
+                                {navLinks.map((link) => (
+                                    <a 
+                                        key={link.name}
+                                        href={link.path}
+                                        className={`nav-link nav-link-dark px-1 py-2 ${currentPage === link.path ? 'active' : ''}`}
+                                    >
+                                        {link.name}
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-4">
+                            <a 
+                                href="login.html"
+                                className="text-secondary-on-dark hover:text-on-dark transition-colors"
+                            >
+                                Sign In
+                            </a>
+                            <a 
+                                href="signup.html"
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                                Sign Up
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            );
+        };
+
+        // Subscription Component
+        const Subscription = () => {
+            const [selectedPlan, setSelectedPlan] = React.useState('premium');
+            
+            React.useEffect(() => {
+                // Initialize Lucide icons
+                lucide.createIcons();
+            }, []);
+            
+            const plans = [
+                {
+                    id: 'basic',
+                    name: 'Basic',
+                    price: '$29',
+                    period: 'per month',
+                    features: [
+                        'Real-time monitoring for up to 5 machines',
+                        'Basic alerts and notifications',
+                        'Standard analytics',
+                        'Email support'
+                    ],
+                    cta: 'Get Started',
+                    featured: false
+                },
+                {
+                    id: 'premium',
+                    name: 'Premium',
+                    price: '$79',
+                    period: 'per month',
+                    features: [
+                        'Real-time monitoring for up to 20 machines',
+                        'Advanced alerts and notifications',
+                        'Advanced analytics with AI insights',
+                        'Priority email and chat support',
+                        'AI Chat access',
+                        'Predictive maintenance schedules'
+                    ],
+                    cta: 'Most Popular',
+                    featured: true
+                },
+                {
+                    id: 'enterprise',
+                    name: 'Enterprise',
+                    price: '$199',
+                    period: 'per month',
+                    features: [
+                        'Unlimited machine monitoring',
+                        'Custom alerts and notifications',
+                        'Advanced analytics with AI insights',
+                        '24/7 dedicated support',
+                        'AI Chat access',
+                        'Predictive maintenance schedules',
+                        'Custom integrations',
+                        'Dedicated account manager'
+                    ],
+                    cta: 'Contact Sales',
+                    featured: false
+                }
+            ];
+            
+            const handleSubscribe = (planId) => {
+                // Save subscription to localStorage
+                localStorage.setItem('subscription', JSON.stringify({
+                    plan: planId,
+                    timestamp: new Date().toISOString()
+                }));
+                
+                alert(`You have successfully subscribed to the ${planId} plan!`);
+                window.location.href = "dashboard.html";
+            };
+            
+            return (
+                <div>
+                    <NavBar />
+                    <div className="p-8">
+                        <div className="max-w-6xl mx-auto">
+                            <div className="text-center mb-12">
+                                <h1 className="text-4xl font-bold text-on-dark mb-4">Choose Your Plan</h1>
+                                <p className="text-xl text-secondary-on-dark max-w-2xl mx-auto">
+                                    Select the perfect plan for your industrial monitoring needs. Upgrade or downgrade at any time.
+                                </p>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                {plans.map((plan) => (
+                                    <div 
+                                        key={plan.id} 
+                                        className={`card-on-dark rounded-xl shadow-md overflow-hidden pricing-card ${plan.featured ? 'featured' : ''}`}
+                                    onClick={() => setSelectedPlan(plan.id)}
+                                    >
+                                        {plan.featured && (
+                                            <div className="bg-blue-600 text-white text-center py-2 text-sm font-semibold">
+                                                MOST POPULAR
+                                            </div>
+                                        )}
+                                        <div className="p-6">
+                                            <h3 className="text-2xl font-bold text-on-dark mb-2">{plan.name}</h3>
+                                            <div className="mb-6">
+                                                <span className="text-4xl font-bold text-on-dark">{plan.price}</span>
+                                                <span className="text-secondary-on-dark">/{plan.period}</span>
+                                            </div>
+                                            <ul className="mb-8 space-y-3">
+                                                {plan.features.map((feature, index) => (
+                                                    <li key={index} className="flex items-start">
+                                                        <i data-lucide="check" className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                                                        <span className="text-secondary-on-dark">{feature}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <button 
+                                                className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                                                    plan.featured 
+                                                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                                                        : 'bg-slate-800 hover:bg-slate-700 text-on-dark'
+                                                }`}
+                                                onClick={() => handleSubscribe(plan.id)}
+                                            >
+                                                {plan.cta}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <div className="mt-12 text-center">
+                                <h3 className="text-xl font-semibold text-on-dark mb-4">Need a Custom Solution?</h3>
+                                <p className="text-secondary-on-dark mb-6 max-w-2xl mx-auto">
+                                    Contact our sales team to create a custom plan tailored to your specific industrial monitoring requirements.
+                                </p>
+                                <button className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-lg transition-colors">
+                                    Contact Sales
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            return <Subscription />;
+        };
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
