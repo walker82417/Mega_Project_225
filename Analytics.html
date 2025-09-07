@@ -18,14 +18,11 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Custom Styles -->
     <style>
-        /* Sidebar active item */
-        .sidebar-item.active {
-            background-color: rgba(59, 130, 246, 0.1);
-            border-left: 3px solid #3b82f6;
-        }
-        
         /* Dark theme styles - Full Dark Version */
         .brand-dark {
             background-color: #020617;
@@ -61,87 +58,309 @@
         .nav-link-dark.active {
             color: #3b82f6;
         }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
     </style>
 </head>
 <body class="brand-dark min-h-screen">
     <div id="root"></div>
     <script type="text/babel">
-        // Sidebar Component
-        const Sidebar = () => {
-            const menuItems = [
-                { name: "Dashboard", path: "dashboard.html", icon: "layout-dashboard" },
-                { name: "Analytics", path: "Analytics.html", icon: "bar-chart-3" },
-                { name: "Alerts", path: "Alerts.html", icon: "alert-triangle" },
-                { name: "AI Chat", path: "AI Chat.html", icon: "message-square" },
-                { name: "Settings", path: "Settings.html", icon: "settings" }
+        // Navigation Bar Component
+        const NavBar = () => {
+            const navLinks = [ 
+                { name: "Home", path: "index.html" }, 
+                { name: "Dashboard", path: "dashboard.html" }, 
+                { name: "Analytics", path: "Analytics.html" }, 
+                { name: "Alerts", path: "Alerts.html" }, 
+                { name: "AI Chat", path: "AI Chat.html" }, 
+                { name: "Settings", path: "Settings.html" } 
             ];
             
-            React.useEffect(() => {
-                // Initialize Lucide icons
-                lucide.createIcons();
-            }, []);
+            const getCurrentPage = () => {
+                const path = window.location.pathname;
+                const filename = path.substring(path.lastIndexOf('/') + 1);
+                return filename === '' ? 'index.html' : filename;
+            };
+            
+            const currentPage = getCurrentPage();
             
             return (
-                <div className="w-64 bg-slate-950 shadow-md h-screen fixed left-0 top-0 pt-16">
-                    <div className="p-4">
-                        <div className="flex items-center mb-8">
-                            <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
-                            <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
-                        </div>
-                        
-                        <nav>
-                            <ul>
-                                {menuItems.map((item) => (
-                                    <li key={item.name} className="mb-2">
-                                        <a
-                                            href={item.path}
-                                            className={`flex items-center px-4 py-3 rounded-lg transition-colors sidebar-item ${item.name === "Analytics" ? 'active' : 'hover:bg-slate-900'}`}
-                                        >
-                                            <i data-lucide={item.icon} className="w-5 h-5 mr-3 text-slate-400"></i>
-                                            <span className="text-secondary-on-dark">{item.name}</span>
-                                        </a>
-                                    </li>
+                <nav className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md shadow-lg">
+                    <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+                        <div className="flex items-center space-x-10">
+                            <div className="flex items-center">
+                                <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
+                                <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
+                            </div>
+                            <div className="hidden md:flex space-x-8 relative">
+                                {navLinks.map((link) => (
+                                    <a key={link.name} href={link.path} className={`nav-link nav-link-dark px-1 py-2 ${currentPage === link.path ? 'active' : ''}`}>
+                                        {link.name}
+                                    </a>
                                 ))}
-                            </ul>
-                        </nav>
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <a href="login.html" className="text-secondary-on-dark hover:text-on-dark transition-colors">Sign In</a>
+                            <a href="signup.html" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">Sign Up</a>
+                        </div>
                     </div>
-                </div>
+                </nav>
             );
         };
-
+        
         // Analytics Data Component
         const AnalyticsData = () => {
+            const [analyticsData, setAnalyticsData] = React.useState([]);
+            const [uptimeChart, setUptimeChart] = React.useState(null);
+            const [alertChart, setAlertChart] = React.useState(null);
+            
             React.useEffect(() => {
-                // Initialize Lucide icons
                 lucide.createIcons();
+                
+                // Generate mock analytics data
+                const generateAnalyticsData = () => {
+                    const data = [];
+                    const now = new Date();
+                    
+                    for (let i = 30; i >= 0; i--) {
+                        const date = new Date(now);
+                        date.setDate(date.getDate() - i);
+                        
+                        data.push({
+                            date: date.toISOString().split('T')[0],
+                            uptime: 85 + Math.random() * 14,
+                            alerts: Math.floor(Math.random() * 10),
+                            efficiency: 75 + Math.random() * 20,
+                            maintenanceEvents: Math.floor(Math.random() * 3)
+                        });
+                    }
+                    
+                    return data;
+                };
+                
+                const data = generateAnalyticsData();
+                setAnalyticsData(data);
+                
+                // Initialize charts after data is set
+                setTimeout(() => {
+                    initializeCharts(data);
+                }, 100);
             }, []);
             
+            const initializeCharts = (data) => {
+                // Uptime Chart
+                const uptimeCtx = document.getElementById('uptimeChart');
+                if (uptimeCtx) {
+                    if (uptimeChart) uptimeChart.destroy();
+                    
+                    const newUptimeChart = new Chart(uptimeCtx, {
+                        type: 'line',
+                        data: {
+                            labels: data.map(d => d.date),
+                            datasets: [{
+                                label: 'Uptime (%)',
+                                data: data.map(d => d.uptime),
+                                borderColor: '#22c55e',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { labels: { color: '#cbd5e1' } }
+                            },
+                            scales: {
+                                x: { 
+                                    ticks: { color: '#94a3b8' },
+                                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                                },
+                                y: { 
+                                    ticks: { color: '#94a3b8' },
+                                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                                }
+                            }
+                        }
+                    });
+                    
+                    setUptimeChart(newUptimeChart);
+                }
+                
+                // Alerts Chart
+                const alertCtx = document.getElementById('alertChart');
+                if (alertCtx) {
+                    if (alertChart) alertChart.destroy();
+                    
+                    const newAlertChart = new Chart(alertCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(d => d.date),
+                            datasets: [{
+                                label: 'Alerts',
+                                data: data.map(d => d.alerts),
+                                backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                                borderColor: '#ef4444',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { labels: { color: '#cbd5e1' } }
+                            },
+                            scales: {
+                                x: { 
+                                    ticks: { color: '#94a3b8' },
+                                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                                },
+                                y: { 
+                                    ticks: { color: '#94a3b8' },
+                                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                                }
+                            }
+                        }
+                    });
+                    
+                    setAlertChart(newAlertChart);
+                }
+            };
+            
+            const handleDownload = () => {
+                let csv = "Date,Uptime (%),Alerts,Efficiency (%),Maintenance Events\n";
+                analyticsData.forEach(row => {
+                    csv += `${row.date},${row.uptime.toFixed(1)},${row.alerts},${row.efficiency.toFixed(1)},${row.maintenanceEvents}\n`;
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'analytics_data.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+            
+            // Calculate summary statistics
+            const avgUptime = analyticsData.length > 0 
+                ? (analyticsData.reduce((sum, d) => sum + d.uptime, 0) / analyticsData.length).toFixed(1)
+                : 0;
+            
+            const totalAlerts = analyticsData.reduce((sum, d) => sum + d.alerts, 0);
+            const avgEfficiency = analyticsData.length > 0 
+                ? (analyticsData.reduce((sum, d) => sum + d.efficiency, 0) / analyticsData.length).toFixed(1)
+                : 0;
+            
             return (
-                <div className="ml-64 p-8">
-                    <h1 className="text-2xl font-bold text-on-dark mb-8">Analytics</h1>
-                    <div className="card-on-dark rounded-xl shadow-md p-12 text-center">
-                        <div className="w-16 h-16 bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i data-lucide="bar-chart-3" className="w-8 h-8 text-blue-400"></i>
+                <div>
+                    <NavBar />
+                    <div className="container mx-auto p-8">
+                        <h1 className="text-2xl font-bold text-on-dark mb-8">Analytics</h1>
+                        
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-green-900 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="trending-up" className="w-6 h-6 text-green-400"></i>
+                                    </div>
+                                    <div>
+                                        <p className="text-secondary-on-dark">Avg. Uptime</p>
+                                        <p className="text-2xl font-bold text-on-dark">{avgUptime}%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-red-900 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="alert-triangle" className="w-6 h-6 text-red-400"></i>
+                                    </div>
+                                    <div>
+                                        <p className="text-secondary-on-dark">Total Alerts</p>
+                                        <p className="text-2xl font-bold text-on-dark">{totalAlerts}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-blue-900 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="gauge" className="w-6 h-6 text-blue-400"></i>
+                                    </div>
+                                    <div>
+                                        <p className="text-secondary-on-dark">Avg. Efficiency</p>
+                                        <p className="text-2xl font-bold text-on-dark">{avgEfficiency}%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-purple-900 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="wrench" className="w-6 h-6 text-purple-400"></i>
+                                    </div>
+                                    <div>
+                                        <p className="text-secondary-on-dark">Maintenance Events</p>
+                                        <p className="text-2xl font-bold text-on-dark">
+                                            {analyticsData.reduce((sum, d) => sum + d.maintenanceEvents, 0)}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <h2 className="text-xl font-semibold text-on-dark mb-2">Coming Soon</h2>
-                        <p className="text-secondary-on-dark max-w-md mx-auto">
-                            Historical trends and analytics will be available here. You'll be able to view machine performance over time and identify patterns.
-                        </p>
+                        
+                        {/* Charts Section */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <h3 className="text-lg font-semibold text-on-dark mb-4">Uptime Trend</h3>
+                                <div className="chart-container">
+                                    <canvas id="uptimeChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <h3 className="text-lg font-semibold text-on-dark mb-4">Alerts History</h3>
+                                <div className="chart-container">
+                                    <canvas id="alertChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Export Button at Bottom */}
+                        <div className="flex justify-center mt-8">
+                            <button 
+                                onClick={handleDownload}
+                                className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+                            >
+                                <i data-lucide="download" className="w-5 h-5 mr-2"></i>
+                                Export Analytics Data
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
         };
-
+        
         // Main App Component
         const App = () => {
             return (
                 <div>
-                    <Sidebar />
                     <AnalyticsData />
                 </div>
             );
         };
-
+        
         // Render the app
         ReactDOM.render(<App />, document.getElementById('root'));
     </script>
