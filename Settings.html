@@ -20,12 +20,6 @@
     
     <!-- Custom Styles -->
     <style>
-        /* Sidebar active item */
-        .sidebar-item.active {
-            background-color: rgba(59, 130, 246, 0.1);
-            border-left: 3px solid #3b82f6;
-        }
-        
         /* Dark theme styles - Full Dark Version */
         .brand-dark {
             background-color: #020617;
@@ -68,16 +62,15 @@
     <script type="text/babel">
         // Navigation Bar Component
         const NavBar = () => {
-            const navLinks = [
-                { name: "Home", path: "index.html" },
-                { name: "Dashboard", path: "dashboard.html" },
-                { name: "Analytics", path: "Analytics.html" },
-                { name: "Alerts", path: "Alerts.html" },
-                { name: "AI Chat", path: "AI Chat.html" },
-                { name: "Settings", path: "Settings.html" }
+            const navLinks = [ 
+                { name: "Home", path: "index.html" }, 
+                { name: "Dashboard", path: "dashboard.html" }, 
+                { name: "Analytics", path: "Analytics.html" }, 
+                { name: "Alerts", path: "Alerts.html" }, 
+                { name: "AI Chat", path: "AI Chat.html" }, 
+                { name: "Settings", path: "Settings.html" } 
             ];
             
-            // Get current page to highlight active link
             const getCurrentPage = () => {
                 const path = window.location.pathname;
                 const filename = path.substring(path.lastIndexOf('/') + 1);
@@ -94,46 +87,29 @@
                                 <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
                                 <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
                             </div>
-                            
                             <div className="hidden md:flex space-x-8 relative">
                                 {navLinks.map((link) => (
-                                    <a 
-                                        key={link.name}
-                                        href={link.path}
-                                        className={`nav-link nav-link-dark px-1 py-2 ${currentPage === link.path ? 'active' : ''}`}
-                                    >
+                                    <a key={link.name} href={link.path} className={`nav-link nav-link-dark px-1 py-2 ${currentPage === link.path ? 'active' : ''}`}>
                                         {link.name}
                                     </a>
                                 ))}
                             </div>
                         </div>
-                        
                         <div className="flex items-center space-x-4">
-                            <a 
-                                href="login.html"
-                                className="text-secondary-on-dark hover:text-on-dark transition-colors"
-                            >
-                                Sign In
-                            </a>
-                            <a 
-                                href="signup.html"
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                            >
-                                Sign Up
-                            </a>
+                            <a href="login.html" className="text-secondary-on-dark hover:text-on-dark transition-colors">Sign In</a>
+                            <a href="signup.html" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">Sign Up</a>
                         </div>
                     </div>
                 </nav>
             );
         };
-
+        
         // Settings Component
         const Settings = () => {
             const [activeTab, setActiveTab] = React.useState('profile');
             const [subscription, setSubscription] = React.useState(null);
             
             React.useEffect(() => {
-                // Initialize Lucide icons
                 lucide.createIcons();
                 
                 // Check subscription status
@@ -195,7 +171,7 @@
             return (
                 <div>
                     <NavBar />
-                    <div className="ml-64 p-8">
+                    <div className="container mx-auto p-8">
                         <h1 className="text-2xl font-bold text-on-dark mb-8">Settings</h1>
                         
                         <div className="flex flex-col md:flex-row gap-8">
@@ -583,17 +559,16 @@
                 </div>
             );
         };
-
+        
         // Main App Component
         const App = () => {
             return (
                 <div>
-                    <NavBar />
                     <Settings />
                 </div>
             );
         };
-
+        
         // Render the app
         ReactDOM.render(<App />, document.getElementById('root'));
     </script>
