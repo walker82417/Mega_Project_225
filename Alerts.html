@@ -20,12 +20,6 @@
     
     <!-- Custom Styles -->
     <style>
-        /* Sidebar active item */
-        .sidebar-item.active {
-            background-color: rgba(59, 130, 246, 0.1);
-            border-left: 3px solid #3b82f6;
-        }
-        
         /* Dark theme styles - Full Dark Version */
         .brand-dark {
             background-color: #020617;
@@ -72,64 +66,89 @@
             { id: 2, machineId: 1, machineName: "CNC Machine A", type: "warning", message: "Temperature Above Threshold", timestamp: "2023-06-25 09:30", resolved: false },
             { id: 3, machineId: 5, machineName: "Welding Robot E", type: "warning", message: "Vibration Levels Increasing", timestamp: "2023-06-24 14:20", resolved: false },
             { id: 4, machineId: 2, machineName: "Hydraulic Press B", type: "info", message: "Scheduled Maintenance Due", timestamp: "2023-06-23 11:15", resolved: true },
-            { id: 5, machineId: 4, machineName: "Packaging Machine D", type: "info", message: "Performance Optimization Available", timestamp: "2023-06-22 16:40", resolved: true }
+            { id: 5, machineId: 4, machineName: "Packaging Machine D", type: "info", message: "Performance Optimization Available", timestamp: "2023-06-22 16:40", resolved: true },
+            { id: 6, machineId: 1, machineName: "CNC Machine A", type: "critical", message: "Motor Overload Detected", timestamp: "2023-06-21 07:30", resolved: true },
+            { id: 7, machineId: 6, machineName: "Conveyor Belt F", type: "warning", message: "Belt Misalignment", timestamp: "2023-06-20 13:15", resolved: false },
+            { id: 8, machineId: 3, machineName: "Assembly Line C", type: "info", message: "Calibration Required", timestamp: "2023-06-19 10:45", resolved: true }
         ];
     </script>
     <script type="text/babel">
-        // Sidebar Component
-        const Sidebar = () => {
-            const menuItems = [
-                { name: "Dashboard", path: "dashboard.html", icon: "layout-dashboard" },
-                { name: "Analytics", path: "Analytics.html", icon: "bar-chart-3" },
-                { name: "Alerts", path: "Alerts.html", icon: "alert-triangle" },
-                { name: "AI Chat", path: "AI Chat.html", icon: "message-square" },
-                { name: "Settings", path: "Settings.html", icon: "settings" }
+        // Navigation Bar Component
+        const NavBar = () => {
+            const navLinks = [ 
+                { name: "Home", path: "index.html" }, 
+                { name: "Dashboard", path: "dashboard.html" }, 
+                { name: "Analytics", path: "Analytics.html" }, 
+                { name: "Alerts", path: "Alerts.html" }, 
+                { name: "AI Chat", path: "AI Chat.html" }, 
+                { name: "Settings", path: "Settings.html" } 
             ];
             
-            React.useEffect(() => {
-                // Initialize Lucide icons
-                lucide.createIcons();
-            }, []);
+            const getCurrentPage = () => {
+                const path = window.location.pathname;
+                const filename = path.substring(path.lastIndexOf('/') + 1);
+                return filename === '' ? 'index.html' : filename;
+            };
+            
+            const currentPage = getCurrentPage();
             
             return (
-                <div className="w-64 bg-slate-950 shadow-md h-screen fixed left-0 top-0 pt-16">
-                    <div className="p-4">
-                        <div className="flex items-center mb-8">
-                            <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
-                            <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
-                        </div>
-                        
-                        <nav>
-                            <ul>
-                                {menuItems.map((item) => (
-                                    <li key={item.name} className="mb-2">
-                                        <a
-                                            href={item.path}
-                                            className={`flex items-center px-4 py-3 rounded-lg transition-colors sidebar-item ${item.name === "Alerts" ? 'active' : 'hover:bg-slate-900'}`}
-                                        >
-                                            <i data-lucide={item.icon} className="w-5 h-5 mr-3 text-slate-400"></i>
-                                            <span className="text-secondary-on-dark">{item.name}</span>
-                                        </a>
-                                    </li>
+                <nav className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md shadow-lg">
+                    <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+                        <div className="flex items-center space-x-10">
+                            <div className="flex items-center">
+                                <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
+                                <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
+                            </div>
+                            <div className="hidden md:flex space-x-8 relative">
+                                {navLinks.map((link) => (
+                                    <a key={link.name} href={link.path} className={`nav-link nav-link-dark px-1 py-2 ${currentPage === link.path ? 'active' : ''}`}>
+                                        {link.name}
+                                    </a>
                                 ))}
-                            </ul>
-                        </nav>
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <a href="login.html" className="text-secondary-on-dark hover:text-on-dark transition-colors">Sign In</a>
+                            <a href="signup.html" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">Sign Up</a>
+                        </div>
                     </div>
-                </div>
+                </nav>
             );
         };
-
+        
         // Alerts Component
         const Alerts = () => {
-            const criticalAlerts = mockAlerts.filter(alert => alert.type === 'critical' && !alert.resolved);
-            const warningAlerts = mockAlerts.filter(alert => alert.type === 'warning' && !alert.resolved);
-            const infoAlerts = mockAlerts.filter(alert => alert.type === 'info' && !alert.resolved);
-            const resolvedAlerts = mockAlerts.filter(alert => alert.resolved);
+            const [filters, setFilters] = React.useState({
+                machine: '',
+                type: '',
+                status: 'active'
+            });
+            
+            const filteredAlerts = React.useMemo(() => {
+                return mockAlerts.filter(alert => {
+                    return (
+                        (filters.machine === '' || alert.machineName.toLowerCase().includes(filters.machine.toLowerCase())) &&
+                        (filters.type === '' || alert.type === filters.type) &&
+                        (filters.status === 'all' || 
+                         (filters.status === 'active' && !alert.resolved) ||
+                         (filters.status === 'resolved' && alert.resolved))
+                    );
+                });
+            }, [filters]);
+            
+            const criticalAlerts = filteredAlerts.filter(alert => alert.type === 'critical' && !alert.resolved);
+            const warningAlerts = filteredAlerts.filter(alert => alert.type === 'warning' && !alert.resolved);
+            const infoAlerts = filteredAlerts.filter(alert => alert.type === 'info' && !alert.resolved);
+            const resolvedAlerts = filteredAlerts.filter(alert => alert.resolved);
             
             React.useEffect(() => {
-                // Initialize Lucide icons
                 lucide.createIcons();
             }, []);
+            
+            const handleFilterChange = (key, value) => {
+                setFilters(prev => ({ ...prev, [key]: value }));
+            };
             
             const getAlertBorderClass = (type) => {
                 switch (type) {
@@ -159,140 +178,211 @@
             };
             
             return (
-                <div className="ml-64 p-8">
-                    <h1 className="text-2xl font-bold text-on-dark mb-8">Alert Management</h1>
-                    
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <div className="card-on-dark rounded-xl shadow-md p-6">
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-blue-900 rounded-lg flex items-center justify-center mr-4">
-                                    <i data-lucide="bell" className="w-6 h-6 text-blue-400"></i>
-                                </div>
+                <div>
+                    <NavBar />
+                    <div className="container mx-auto p-8">
+                        <h1 className="text-2xl font-bold text-on-dark mb-8">Alert Management</h1>
+                        
+                        {/* Filter Section */}
+                        <div className="card-on-dark rounded-xl shadow-md p-6 mb-8">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div>
-                                    <p className="text-secondary-on-dark">Total Alerts</p>
-                                    <p className="text-2xl font-bold text-on-dark">{mockAlerts.length}</p>
+                                    <label className="block text-secondary-on-dark mb-2">Machine</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Filter by machine..."
+                                        className="w-full border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-900 text-on-dark"
+                                        value={filters.machine}
+                                        onChange={(e) => handleFilterChange('machine', e.target.value)}
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-secondary-on-dark mb-2">Alert Type</label>
+                                    <select
+                                        className="w-full border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-900 text-on-dark"
+                                        value={filters.type}
+                                        onChange={(e) => handleFilterChange('type', e.target.value)}
+                                    >
+                                        <option value="">All Types</option>
+                                        <option value="critical">Critical</option>
+                                        <option value="warning">Warning</option>
+                                        <option value="info">Info</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-secondary-on-dark mb-2">Status</label>
+                                    <select
+                                        className="w-full border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-900 text-on-dark"
+                                        value={filters.status}
+                                        onChange={(e) => handleFilterChange('status', e.target.value)}
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="all">All</option>
+                                    </select>
+                                </div>
+                                
+                                <div className="flex items-end">
+                                    <button
+                                        className="w-full bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors"
+                                        onClick={() => setFilters({ machine: '', type: '', status: 'active' })}
+                                    >
+                                        Clear Filters
+                                    </button>
                                 </div>
                             </div>
                         </div>
                         
-                        <div className="card-on-dark rounded-xl shadow-md p-6">
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-red-900 rounded-lg flex items-center justify-center mr-4">
-                                    <i data-lucide="alert-circle" className="w-6 h-6 text-red-400"></i>
-                                </div>
-                                <div>
-                                    <p className="text-secondary-on-dark">Critical</p>
-                                    <p className="text-2xl font-bold text-on-dark">{criticalAlerts.length}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="card-on-dark rounded-xl shadow-md p-6">
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-yellow-900 rounded-lg flex items-center justify-center mr-4">
-                                    <i data-lucide="alert-triangle" className="w-6 h-6 text-yellow-400"></i>
-                                </div>
-                                <div>
-                                    <p className="text-secondary-on-dark">Warning</p>
-                                    <p className="text-2xl font-bold text-on-dark">{warningAlerts.length}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="card-on-dark rounded-xl shadow-md p-6">
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center mr-4">
-                                    <i data-lucide="check-circle" className="w-6 h-6 text-slate-400"></i>
-                                </div>
-                                <div>
-                                    <p className="text-secondary-on-dark">Unresolved</p>
-                                    <p className="text-2xl font-bold text-on-dark">{mockAlerts.filter(a => !a.resolved).length}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* Active Alerts */}
-                    <div className="mb-8">
-                        <h2 className="text-xl font-semibold text-secondary-on-dark mb-4">Active Alerts</h2>
-                        <div className="card-on-dark rounded-xl shadow-md overflow-hidden">
-                            {[...criticalAlerts, ...warningAlerts, ...infoAlerts].map(alert => (
-                                <div key={alert.id} className={`border-l-4 ${getAlertBorderClass(alert.type)} p-4 ${alert.id !== [...criticalAlerts, ...warningAlerts, ...infoAlerts][[...criticalAlerts, ...warningAlerts, ...infoAlerts].length - 1].id ? 'border-b border-slate-800' : ''}`}>
-                                    <div className="flex justify-between">
-                                        <div className="flex items-start">
-                                            <i data-lucide={getAlertIcon(alert.type)} className={`w-5 h-5 mr-3 mt-0.5 ${getAlertIconColor(alert.type)}`}></i>
-                                            <div>
-                                                <h3 className="font-medium text-on-dark">{alert.machineName}</h3>
-                                                <p className="text-secondary-on-dark">{alert.message}</p>
-                                                <p className="text-sm text-slate-400 mt-1">{alert.timestamp}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            <button className="text-blue-400 hover:text-blue-300">
-                                                <i data-lucide="external-link" className="w-5 h-5"></i>
-                                            </button>
-                                            <button className="text-slate-400 hover:text-slate-300">
-                                                <i data-lucide="check" className="w-5 h-5"></i>
-                                            </button>
-                                        </div>
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-blue-900 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="bell" className="w-6 h-6 text-blue-400"></i>
+                                    </div>
+                                    <div>
+                                        <p className="text-secondary-on-dark">Total Alerts</p>
+                                        <p className="text-2xl font-bold text-on-dark">{filteredAlerts.length}</p>
                                     </div>
                                 </div>
-                            ))}
+                            </div>
                             
-                            {[...criticalAlerts, ...warningAlerts, ...infoAlerts].length === 0 && (
-                                <div className="p-8 text-center text-slate-400">
-                                    <i data-lucide="check-circle" className="w-12 h-12 mx-auto mb-3 text-green-500"></i>
-                                    <p>No active alerts</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    
-                    {/* Resolved Alerts */}
-                    <div>
-                        <h2 className="text-xl font-semibold text-secondary-on-dark mb-4">Resolved Alerts</h2>
-                        <div className="card-on-dark rounded-xl shadow-md overflow-hidden">
-                            {resolvedAlerts.map(alert => (
-                                <div key={alert.id} className={`border-l-4 ${getAlertBorderClass(alert.type)} p-4 ${alert.id !== resolvedAlerts[resolvedAlerts.length - 1].id ? 'border-b border-slate-800' : ''} opacity-70`}>
-                                    <div className="flex justify-between">
-                                        <div className="flex items-start">
-                                            <i data-lucide={getAlertIcon(alert.type)} className={`w-5 h-5 mr-3 mt-0.5 ${getAlertIconColor(alert.type)}`}></i>
-                                            <div>
-                                                <h3 className="font-medium text-on-dark">{alert.machineName}</h3>
-                                                <p className="text-secondary-on-dark">{alert.message}</p>
-                                                <p className="text-sm text-slate-400 mt-1">{alert.timestamp}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center text-green-500">
-                                            <i data-lucide="check-circle" className="w-5 h-5 mr-1"></i>
-                                            <span className="text-sm">Resolved</span>
-                                        </div>
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-red-900 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="alert-circle" className="w-6 h-6 text-red-400"></i>
+                                    </div>
+                                    <div>
+                                        <p className="text-secondary-on-dark">Critical</p>
+                                        <p className="text-2xl font-bold text-on-dark">{criticalAlerts.length}</p>
                                     </div>
                                 </div>
-                            ))}
+                            </div>
                             
-                            {resolvedAlerts.length === 0 && (
-                                <div className="p-8 text-center text-slate-400">
-                                    <p>No resolved alerts</p>
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-yellow-900 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="alert-triangle" className="w-6 h-6 text-yellow-400"></i>
+                                    </div>
+                                    <div>
+                                        <p className="text-secondary-on-dark">Warning</p>
+                                        <p className="text-2xl font-bold text-on-dark">{warningAlerts.length}</p>
+                                    </div>
                                 </div>
-                            )}
+                            </div>
+                            
+                            <div className="card-on-dark rounded-xl shadow-md p-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="check-circle" className="w-6 h-6 text-slate-400"></i>
+                                    </div>
+                                    <div>
+                                        <p className="text-secondary-on-dark">Unresolved</p>
+                                        <p className="text-2xl font-bold text-on-dark">
+                                            {filteredAlerts.filter(a => !a.resolved).length}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                        
+                        {/* Active Alerts */}
+                        {(filters.status === 'active' || filters.status === 'all') && (
+                            <div className="mb-8">
+                                <h2 className="text-xl font-semibold text-secondary-on-dark mb-4">
+                                    Active Alerts
+                                    <span className="text-sm text-slate-400 ml-2">
+                                        ({criticalAlerts.length + warningAlerts.length + infoAlerts.length} items)
+                                    </span>
+                                </h2>
+                                <div className="card-on-dark rounded-xl shadow-md overflow-hidden">
+                                    {[...criticalAlerts, ...warningAlerts, ...infoAlerts].map(alert => (
+                                        <div key={alert.id} className={`border-l-4 ${getAlertBorderClass(alert.type)} p-4 ${alert.id !== [...criticalAlerts, ...warningAlerts, ...infoAlerts][[...criticalAlerts, ...warningAlerts, ...infoAlerts].length - 1]?.id ? 'border-b border-slate-800' : ''}`}>
+                                            <div className="flex justify-between">
+                                                <div className="flex items-start">
+                                                    <i data-lucide={getAlertIcon(alert.type)} className={`w-5 h-5 mr-3 mt-0.5 ${getAlertIconColor(alert.type)}`}></i>
+                                                    <div>
+                                                        <h3 className="font-medium text-on-dark">{alert.machineName}</h3>
+                                                        <p className="text-secondary-on-dark">{alert.message}</p>
+                                                        <p className="text-sm text-slate-400 mt-1">{alert.timestamp}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <button className="text-blue-400 hover:text-blue-300">
+                                                        <i data-lucide="external-link" className="w-5 h-5"></i>
+                                                    </button>
+                                                    <button className="text-slate-400 hover:text-slate-300">
+                                                        <i data-lucide="check" className="w-5 h-5"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    {[...criticalAlerts, ...warningAlerts, ...infoAlerts].length === 0 && (
+                                        <div className="p-8 text-center text-slate-400">
+                                            <i data-lucide="check-circle" className="w-12 h-12 mx-auto mb-3 text-green-500"></i>
+                                            <p>No active alerts match your filters</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Resolved Alerts */}
+                        {(filters.status === 'resolved' || filters.status === 'all') && (
+                            <div>
+                                <h2 className="text-xl font-semibold text-secondary-on-dark mb-4">
+                                    Resolved Alerts
+                                    <span className="text-sm text-slate-400 ml-2">
+                                        ({resolvedAlerts.length} items)
+                                    </span>
+                                </h2>
+                                <div className="card-on-dark rounded-xl shadow-md overflow-hidden">
+                                    {resolvedAlerts.map(alert => (
+                                        <div key={alert.id} className={`border-l-4 ${getAlertBorderClass(alert.type)} p-4 ${alert.id !== resolvedAlerts[resolvedAlerts.length - 1]?.id ? 'border-b border-slate-800' : ''} opacity-70`}>
+                                            <div className="flex justify-between">
+                                                <div className="flex items-start">
+                                                    <i data-lucide={getAlertIcon(alert.type)} className={`w-5 h-5 mr-3 mt-0.5 ${getAlertIconColor(alert.type)}`}></i>
+                                                    <div>
+                                                        <h3 className="font-medium text-on-dark">{alert.machineName}</h3>
+                                                        <p className="text-secondary-on-dark">{alert.message}</p>
+                                                        <p className="text-sm text-slate-400 mt-1">{alert.timestamp}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center text-green-500">
+                                                    <i data-lucide="check-circle" className="w-5 h-5 mr-1"></i>
+                                                    <span className="text-sm">Resolved</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    {resolvedAlerts.length === 0 && (
+                                        <div className="p-8 text-center text-slate-400">
+                                            <i data-lucide="check-circle" className="w-12 h-12 mx-auto mb-3 text-green-500"></i>
+                                            <p>No resolved alerts match your filters</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             );
         };
-
+        
         // Main App Component
         const App = () => {
             return (
                 <div>
-                    <Sidebar />
                     <Alerts />
                 </div>
             );
         };
-
+        
         // Render the app
         ReactDOM.render(<App />, document.getElementById('root'));
     </script>
