@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choose Simulation - Industrial Monitoring Web App</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    .card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen text-white">
+
+  <div class="text-center px-6">
+    <!-- Title -->
+    <h1 class="text-3xl font-bold mb-10">Choose Your Simulation</h1>
+
+    <!-- Machine Options -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+
+      <!-- Induction Machine -->
+      <a href="induction.html" class="card bg-gray-800 p-8 rounded-2xl hover:bg-gray-700">
+        <div class="flex flex-col items-center">
+          <div class="bg-blue-600 p-4 rounded-full mb-4">
+            🔥
+          </div>
+          <h2 class="text-xl font-semibold mb-2">Induction Machine</h2>
+          <p class="text-gray-300 text-sm">
+            Predict failures (bearing, stator winding, etc.), analyze motor health, and simulate operational conditions.
+          </p>
+        </div>
+      </a>
+
+      <!-- Gear Hobbing -->
+      <a href="gearhobbing.html" class="card bg-gray-800 p-8 rounded-2xl hover:bg-gray-700">
+        <div class="flex flex-col items-center">
+          <div class="bg-green-600 p-4 rounded-full mb-4">
+            ⚙️
+          </div>
+          <h2 class="text-xl font-semibold mb-2">Gear Hobbing Machine</h2>
+          <p class="text-gray-300 text-sm">
+            Monitor cutting tool wear, vibrations, and machine performance for optimized production.
+          </p>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+</body>
+</html>
