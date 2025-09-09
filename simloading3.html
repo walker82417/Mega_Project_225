@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulation Loading - Industrial Monitoring Web App</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Animation -->
+  <style>
+    @keyframes pulseLoader {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.5; }
+    }
+    .dot {
+      animation: pulseLoader 1.5s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.3s; }
+    .dot:nth-child(3) { animation-delay: 0.6s; }
+  </style>
+</head>
+<body class="bg-gray-900 flex items-center justify-center h-screen text-white">
+
+  <div class="text-center">
+    <!-- Logo / Title -->
+    <h1 class="text-3xl font-bold mb-6">Industrial Monitoring Web App</h1>
+    
+    <!-- Loading Spinner -->
+    <div class="flex items-center justify-center space-x-2 mb-6">
+      <div class="w-4 h-4 bg-blue-500 rounded-full dot"></div>
+      <div class="w-4 h-4 bg-green-500 rounded-full dot"></div>
+      <div class="w-4 h-4 bg-yellow-500 rounded-full dot"></div>
+    </div>
+
+    <!-- Loading Text -->
+    <p class="text-lg mb-4">Gear Hobbing Machine Simulation is Loading... Please Wait</p>
+
+    <!-- Progress Bar -->
+    <div class="w-64 bg-gray-700 rounded-full h-3 mx-auto">
+      <div id="progress" class="bg-blue-500 h-3 rounded-full" style="width: 0%;"></div>
+    </div>
+    
+    <!-- Percentage -->
+    <p id="percentage" class="mt-3 text-sm">0%</p>
+  </div>
+
+  <!-- JavaScript for progress -->
+  <script>
+    let progress = 0;
+    const progressBar = document.getElementById("progress");
+    const percentageText = document.getElementById("percentage");
+
+    const interval = setInterval(() => {
+      if (progress < 100) {
+        progress++;
+        progressBar.style.width = progress + "%";
+        percentageText.textContent = progress + "%";
+      } else {
+        clearInterval(interval);
+        // Redirect after loading finishes
+        window.location.href = "gearhobbing.html";
+      }
+    }, 100); // ~5 seconds loading
+  </script>
+</body>
+</html>
