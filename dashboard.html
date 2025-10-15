@@ -294,114 +294,7 @@
             return <Dashboard />;
         };
 
-   // Footer Component
-        const Footer = () => {
-            React.useEffect(() => {
-                // Initialize Lucide icons
-                lucide.createIcons();
-            }, []);
-            
-            const footerLinks = [
-                { name: "Home", path: "index.html" },
-                { name: "Dashboard", path: "dashboard.html" },
-                { name: "Analytics", path: "Analytics.html" },
-                { name: "Alerts", path: "Alerts.html" },
-                { name: "AI Chat", path: "AI Chat.html" },
-                { name: "Settings", path: "Settings.html" }
-            ];
-            
-            const socialLinks = [
-                { name: "Twitter", icon: "twitter", path: "#" },
-                { name: "LinkedIn", icon: "linkedin", path: "#" },
-                { name: "GitHub", icon: "github", path: "#" },
-                { name: "Facebook", icon: "facebook", path: "#" }
-            ];
-            
-            return (
-                <footer className="bg-slate-950 border-t border-slate-900 pt-12 pb-8">
-                    <div className="container mx-auto px-4">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                            {/* Company Info */}
-                            <div className="col-span-1 md:col-span-2">
-                                <div className="flex items-center mb-4">
-                                    <i data-lucide="activity" className="w-8 h-8 text-blue-500 mr-2"></i>
-                                    <span className="text-xl font-bold text-on-dark">Industrial Chatbot</span>
-                                </div>
-                                <p className="text-secondary-on-dark mb-4 max-w-md">
-                                    Revolutionizing industrial monitoring with AI-powered solutions for predictive maintenance and real-time analytics.
-                                </p>
-                                <div className="flex space-x-4">
-                                    {socialLinks.map((social, index) => (
-                                        <a 
-                                            key={index}
-                                            href={social.path}
-                                            className="text-secondary-on-dark social-icon"
-                                            aria-label={social.name}
-                                        >
-                                            <i data-lucide={social.icon} className="w-5 h-5"></i>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                            
-                            {/* Quick Links */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-on-dark mb-4">Quick Links</h3>
-                                <ul className="space-y-2">
-                                    {footerLinks.map((link, index) => (
-                                        <li key={index}>
-                                            <a 
-                                                href={link.path}
-                                                className="text-secondary-on-dark hover:text-on-dark footer-link"
-                                            >
-                                                {link.name}
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            
-                            {/* Contact Info */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-on-dark mb-4">Contact Us</h3>
-                                <ul className="space-y-3">
-                                    <li className="flex items-start">
-                                        <i data-lucide="map-pin" className="w-5 h-5 text-blue-500 mr-2 mt-0.5"></i>
-                                        <span className="text-secondary-on-dark">KIT's College of Engineering Kolhapur</span>
-                                    </li>
-                                    <li className="flex items-center">
-                                        <i data-lucide="phone" className="w-5 h-5 text-blue-500 mr-2"></i>
-                                        <span className="text-secondary-on-dark">+1 (555) 123-4567</span>
-                                    </li>
-                                    <li className="flex items-center">
-                                        <i data-lucide="mail" className="w-5 h-5 text-blue-500 mr-2"></i>
-                                        <span className="text-secondary-on-dark">rohandoiphode1@gmail.com</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        {/* Copyright */}
-                        <div className="border-t border-slate-900 mt-8 pt-6 text-center">
-                            <p className="text-secondary-on-dark">
-                                &copy; {new Date().getFullYear()} Industrial Chatbot. All rights reserved.
-                            </p>
-                        </div>
-                    </div>
-                </footer>
-            );
-        };
-        
-        // Main App Component
-        const App = () => {
-            return (
-                <div className="flex flex-col min-h-screen">
-                    <NavBar />
-                    <LandingPage />
-                    <Footer />
-                </div>
-            );
-        };
+
         
         // Render the app
         ReactDOM.render(<App />, document.getElementById('root'));
@@ -409,6 +302,7 @@
 </body>
 
 </html>
+
 
 
 
