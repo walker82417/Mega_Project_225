@@ -85,8 +85,9 @@
 </head>
 <body class="brand-dark min-h-screen">
     <div id="root"></div>
+    <script src="api-config.js"></script>
     <script type="text/javascript">
-        // Mock Data
+        // Fallback Data
         const mockMachines = [
             { 
                 id: 1, 
@@ -172,12 +173,25 @@
 
         // Dashboard Component
         const Dashboard = () => {
-            const needsAttention = mockMachines.filter(machine => machine.status !== 'normal');
-            const otherMachines = mockMachines.filter(machine => machine.status === 'normal');
-            
+            const [machines, setMachines] = React.useState(mockMachines);
+            const needsAttention = machines.filter(machine => machine.status !== 'normal');
+            const otherMachines = machines.filter(machine => machine.status === 'normal');
+
             React.useEffect(() => {
-                // Initialize Lucide icons
                 lucide.createIcons();
+                fetch(`${window.API_BASE_URL}/api/machines`)
+                    .then((res) => res.json())
+                    .then((data) => { if (Array.isArray(data)) setMachines(data); })
+                    .catch(() => {});
+
+                const ws = new WebSocket(window.API_BASE_URL.replace('http', 'ws') + '/ws/live');
+                ws.onmessage = (event) => {
+                    try {
+                        const payload = JSON.parse(event.data);
+                        if (payload.machines) setMachines(payload.machines);
+                    } catch (e) {}
+                };
+                return () => ws.close();
             }, []);
             
             const getStatusColor = (status) => {
