@@ -110,8 +110,10 @@
 </head>
 <body class="brand-dark min-h-screen">
     <div id="root"></div>
+    <script src="api-config.js"></script>
+    <script>window.API_BASE_URL = window.API_BASE_URL || "http://127.0.0.1:8000";</script>
     <script type="text/javascript">
-        // Mock Data
+        // Fallback Data
         const mockChatMessages = [
             { id: 1, sender: "ai", text: "Hello! I'm your Industrial AI Assistant. How can I help you today?", timestamp: "10:00 AM" },
             { id: 2, sender: "user", text: "What's the status of Assembly Line C?", timestamp: "10:02 AM" },
@@ -188,76 +190,6 @@
             );
         };
         
-        // Subscription Check Component
-        const SubscriptionCheck = ({ children }) => {
-            const [hasSubscription, setHasSubscription] = React.useState(false);
-            const [isLoading, setIsLoading] = React.useState(true);
-            
-            React.useEffect(() => {
-                // Check subscription status
-                const savedSubscription = localStorage.getItem('subscription');
-                if (savedSubscription) {
-                    try {
-                        const subscription = JSON.parse(savedSubscription);
-                        const now = new Date();
-                        const subDate = new Date(subscription.timestamp);
-                        const daysSinceSub = Math.floor((now - subDate) / (1000 * 60 * 60 * 24));
-                        
-                        setHasSubscription(daysSinceSub <= 30);
-                    } catch (e) {
-                        console.error('Error parsing subscription data:', e);
-                        setHasSubscription(false);
-                    }
-                } else {
-                    setHasSubscription(false);
-                }
-                setIsLoading(false);
-            }, []);
-            
-            if (isLoading) {
-                return (
-                    <div className="flex items-center justify-center h-screen">
-                        <div className="text-center">
-                            <div className="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto mb-4"></div>
-                            <p className="text-secondary-on-dark">Loading...</p>
-                        </div>
-                    </div>
-                );
-            }
-            
-            if (!hasSubscription) {
-                return (
-                    <div className="flex flex-col items-center justify-center h-screen p-8">
-                        <div className="max-w-md w-full card-on-dark rounded-xl shadow-md p-8 text-center">
-                            <div className="w-16 h-16 bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <i data-lucide="lock" className="w-8 h-8 text-blue-400"></i>
-                            </div>
-                            <h2 className="text-2xl font-bold text-on-dark mb-4">Subscription Required</h2>
-                            <p className="text-secondary-on-dark mb-6">
-                                You need an active subscription to access the AI Chat feature. Please subscribe to one of our plans to unlock this feature.
-                            </p>
-                            <div className="space-y-4">
-                                <button 
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
-                                    onClick={() => window.location.href = "subscription.html"}
-                                >
-                                    View Subscription Plans
-                                </button>
-                                <button 
-                                    className="w-full bg-slate-800 hover:bg-slate-700 text-on-dark px-6 py-3 rounded-lg transition-colors"
-                                    onClick={() => window.location.href = "dashboard.html"}
-                                >
-                                    Back to Dashboard
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-            
-            return children;
-        };
-        
         // AI Chat Component
         const AIChat = () => {
             const [message, setMessage] = React.useState('');
@@ -267,7 +199,9 @@
             
             React.useEffect(() => {
                 // Initialize Lucide icons
-                lucide.createIcons();
+                if (window.lucide && typeof window.lucide.createIcons === "function") {
+                    window.lucide.createIcons();
+                }
                 
                 // Scroll to bottom of chat
                 if (chatContainerRef.current) {
@@ -289,19 +223,33 @@
                 setMessage('');
                 setIsTyping(true);
                 
-                // Simulate AI response after a delay
-                setTimeout(() => {
-                    const aiResponse = {
-                        id: messages.length + 2,
-                        sender: 'ai',
-                        text: "I'm analyzing your request. This is a simulated response from the AI assistant.",
-                        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    };
-                    setMessages(prev => [...prev, aiResponse]);
-                    setIsTyping(false);
-                }, 1500);
+                fetch(`${window.API_BASE_URL}/api/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message })
+                })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        const aiResponse = {
+                            id: Date.now() + 1,
+                            sender: 'ai',
+                            text: data.reply || 'Sorry, I could not process that.',
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        };
+                        setMessages(prev => [...prev, aiResponse]);
+                    })
+                    .catch(() => {
+                        const aiResponse = {
+                            id: Date.now() + 1,
+                            sender: 'ai',
+                            text: 'Backend is offline. Start FastAPI server on port 8000.',
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        };
+                        setMessages(prev => [...prev, aiResponse]);
+                    })
+                    .finally(() => setIsTyping(false));
             };
-            
+
             const handleKeyPress = (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -430,9 +378,7 @@
         // Main App Component
         const App = () => {
             return (
-                <SubscriptionCheck>
-                    <AIChat />
-                </SubscriptionCheck>
+                <AIChat />
             );
         };
         
