@@ -59,8 +59,9 @@
 </head>
 <body class="brand-dark min-h-screen">
     <div id="root"></div>
+    <script src="api-config.js"></script>
     <script type="text/javascript">
-        // Mock Data
+        // Fallback Data
         const mockAlerts = [
             { id: 1, machineId: 3, machineName: "Assembly Line C", type: "critical", message: "Bearing Wear Detected", timestamp: "2023-06-25 08:45", resolved: false },
             { id: 2, machineId: 1, machineName: "CNC Machine A", type: "warning", message: "Temperature Above Threshold", timestamp: "2023-06-25 09:30", resolved: false },
@@ -119,6 +120,7 @@
         
         // Alerts Component
         const Alerts = () => {
+            const [alerts, setAlerts] = React.useState(mockAlerts);
             const [filters, setFilters] = React.useState({
                 machine: '',
                 type: '',
@@ -126,7 +128,7 @@
             });
             
             const filteredAlerts = React.useMemo(() => {
-                return mockAlerts.filter(alert => {
+                return alerts.filter(alert => {
                     return (
                         (filters.machine === '' || alert.machineName.toLowerCase().includes(filters.machine.toLowerCase())) &&
                         (filters.type === '' || alert.type === filters.type) &&
@@ -135,7 +137,7 @@
                          (filters.status === 'resolved' && alert.resolved))
                     );
                 });
-            }, [filters]);
+            }, [alerts, filters]);
             
             const criticalAlerts = filteredAlerts.filter(alert => alert.type === 'critical' && !alert.resolved);
             const warningAlerts = filteredAlerts.filter(alert => alert.type === 'warning' && !alert.resolved);
@@ -144,6 +146,22 @@
             
             React.useEffect(() => {
                 lucide.createIcons();
+                fetch(`${window.API_BASE_URL}/api/alerts`)
+                    .then((res) => res.json())
+                    .then((data) => {
+                        if (!Array.isArray(data)) return;
+                        const mapped = data.map((a) => ({
+                            id: a.id,
+                            machineId: a.id,
+                            machineName: a.machine,
+                            type: a.severity || "warning",
+                            message: a.message,
+                            timestamp: new Date(a.timestamp).toLocaleString(),
+                            resolved: false,
+                        }));
+                        setAlerts(mapped);
+                    })
+                    .catch(() => {});
             }, []);
             
             const handleFilterChange = (key, value) => {

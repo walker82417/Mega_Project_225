@@ -110,8 +110,9 @@
 </head>
 <body class="brand-dark min-h-screen">
     <div id="root"></div>
+    <script src="api-config.js"></script>
     <script type="text/javascript">
-        // Mock Data
+        // Fallback Data
         const mockChatMessages = [
             { id: 1, sender: "ai", text: "Hello! I'm your Industrial AI Assistant. How can I help you today?", timestamp: "10:00 AM" },
             { id: 2, sender: "user", text: "What's the status of Assembly Line C?", timestamp: "10:02 AM" },
@@ -289,19 +290,33 @@
                 setMessage('');
                 setIsTyping(true);
                 
-                // Simulate AI response after a delay
-                setTimeout(() => {
-                    const aiResponse = {
-                        id: messages.length + 2,
-                        sender: 'ai',
-                        text: "I'm analyzing your request. This is a simulated response from the AI assistant.",
-                        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    };
-                    setMessages(prev => [...prev, aiResponse]);
-                    setIsTyping(false);
-                }, 1500);
+                fetch(`${window.API_BASE_URL}/api/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message })
+                })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        const aiResponse = {
+                            id: Date.now() + 1,
+                            sender: 'ai',
+                            text: data.reply || 'Sorry, I could not process that.',
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        };
+                        setMessages(prev => [...prev, aiResponse]);
+                    })
+                    .catch(() => {
+                        const aiResponse = {
+                            id: Date.now() + 1,
+                            sender: 'ai',
+                            text: 'Backend is offline. Start FastAPI server on port 8000.',
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        };
+                        setMessages(prev => [...prev, aiResponse]);
+                    })
+                    .finally(() => setIsTyping(false));
             };
-            
+
             const handleKeyPress = (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
